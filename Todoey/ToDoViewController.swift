@@ -11,10 +11,15 @@ import UIKit
 class ToDoViewController: UITableViewController {
 
     var itemArray = ["One", "Two", "Three"]
+    let storedArray = UserDefaults.standard
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        
+        if let itemList = storedArray.array(forKey: "StoredList") as? [String] {
+            itemArray = itemList
+        }
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -50,6 +55,7 @@ class ToDoViewController: UITableViewController {
         let alert = UIAlertController(title: "Add new item", message: "", preferredStyle: .alert)
         let action = UIAlertAction(title: "Add", style: .default) { (action) in
             self.itemArray.append(itemToAdd.text!)
+            self.storedArray.set(self.itemArray, forKey: "StoredList")
             self.tableView.reloadData()
         }
         
