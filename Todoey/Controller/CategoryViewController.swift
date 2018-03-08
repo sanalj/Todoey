@@ -8,8 +8,9 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
-class CategoryViewController: UITableViewController {
+class CategoryViewController: SwipeViewController {
     
     let realm = try! Realm()
     
@@ -23,6 +24,7 @@ class CategoryViewController: UITableViewController {
 
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem
+//        tableView.rowHeight = 80.0
         loadData()
         
     }
@@ -41,9 +43,13 @@ class CategoryViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
-        
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         cell.textLabel?.text = category?[indexPath.row].name ?? "Nothing added"
+        if let category = category?[indexPath.row] {
+            guard let categoryColor = UIColor(hexString: category.color) else {fatalError()}
+            cell.backgroundColor = categoryColor
+            cell.textLabel?.textColor = ContrastColorOf(categoryColor , returnFlat: true)
+        }
         return cell
     }
     
@@ -110,6 +116,7 @@ class CategoryViewController: UITableViewController {
         let alert = UIAlertController(title: "Add New Category", message: "", preferredStyle: .alert)
         let action = UIAlertAction(title: "Add", style: .default) { (action) in
             newCategory.name = categoryToAdd.text!
+            newCategory.color = UIColor.randomFlat.hexValue()
             
             self.saveData(category: newCategory)
         }
@@ -140,5 +147,18 @@ class CategoryViewController: UITableViewController {
 
         category = realm.objects(Category.self)
         tableView.reloadData()
+    }
+    
+    override func updateData(at indexPath: IndexPath) {
+        
+        if let categoryForDelete = self.category?[indexPath.row] {
+            do {
+                try self.realm.write {
+                    self.realm.delete(categoryForDelete)
+                }
+            } catch {
+                print("Error while deleting category: \(error)")
+            }
+        }
     }
 }
